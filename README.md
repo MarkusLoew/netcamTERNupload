@@ -1,6 +1,6 @@
--------------------------------------------
-Markus Loew, University of Melbourne, 2026
--------------------------------------------
+---------------------------
+Netcam image upload to TERN
+---------------------------
  
 Upload images from Stardot NetcamLive2 to TERN server using sFTP with SSH key authentication
 This script takes a RGB photo, switches to IR mode, takes an IR photo, and uploads both to the TERN server using sFTP.
