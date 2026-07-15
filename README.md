@@ -1,8 +1,9 @@
----------------------------
-Netcam image upload to TERN
----------------------------
- 
-Upload images from Stardot NetcamLive2 to TERN server using sFTP with SSH key authentication
+Upload images from Stardot NetcamLive2 to TERN server using sFTP on non-standard port with SSH key authentication
+-----------------------------------------------------------------------------------------------------------------
+
+Markus Loew, University of Melbourne
+July 2026
+
 This script takes a RGB photo, switches to IR mode, takes an IR photo, and uploads both to the TERN server using sFTP.
 NDVI can later be calculated as NDVI = (NIR - Red) / (NIR + Red) from the corresponding RGB and IR images.
 
