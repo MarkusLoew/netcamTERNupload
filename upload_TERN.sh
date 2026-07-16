@@ -55,10 +55,14 @@ REMOTE_USER="netcamlive-3B0423"
 # TERN server address. The port 2222 is specified in the SSH wrapper script as the embedded dropbear sftp version can not handle it internally.
 REMOTE_HOST="sftp.tern.org.au"
 REMOTE_PATH="."
-# before first use, create the SSH key pair on the camera and copy the public key to the TERN server. The private key is stored in /mnt/cfg1/phenocam_key
-# use  dropbearkey -t ecdsa -s 521 -f /mnt/cfg1/phenocam_key to create the ssh key pair. The public key is in /mnt/cfg1/phenocam_key.pub
-# use dropbearkey -y -f /mnt/cfg1/phenocam_key to get the public key in the format that can be added to the authorized_keys file on the TERN server. Send this public key to TERN support (Gerhard).
-SSH_KEY="/mnt/cfg1/phenocam_key"
+# REMOTE PORT 2222 is hardcoded to 2222 in the SSH wrapper script!
+#REMOTE_PORT=2222
+# FLux towers usually upload their data at half-hourly intervals. To avoid overloading the network connection, a delay of 5 minutes is added before the first upload attempt. Upload of 10 Hz data from the flux tower is usually done within 4  minutes intervals. Upload of 20 Hz TOA5 file can take up to 9 minutes. Adjust UPload delay accordingly.
+UPLOAD_DELAY=300
+# before first use, create the SSH key pair on the camera and copy the public key to the TERN server. The private key is stored in /mnt/cfg1/camera_key
+# use  dropbearkey -t ecdsa -s 521 -f /mnt/cfg1/camera_key to create the ssh key pair. The public key is in /mnt/cfg1/camera_key.pub
+# use dropbearkey -y -f /mnt/cfg1/camera_key to get the public key in the format that can be added to the authorized_keys file on the TERN server. Send this public key to TERN support (Gerhard).
+SSH_KEY="/mnt/cfg1/camera_key"
 SSH_WRAPPER="/tmp/ssh-wrapper.sh"
 BATCH_FILE="/tmp/sftp-batch.txt"
 LOG_FILE="/tmp/upload-photo.log"
@@ -85,6 +89,7 @@ echo "REMOTE_PHOTO: $REMOTE_PHOTO" | tee -a "$LOG_FILE"
 
 # Create SSH wrapper script
 echo "Creating SSH wrapper..." | tee -a "$LOG_FILE"
+
 cat > "$SSH_WRAPPER" << 'WRAPPER'
 #!/bin/sh
 exec /usr/bin/ssh -p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
@@ -102,30 +107,30 @@ wget http://127.0.0.1/image.jpg -O "$LOCAL_PHOTO" >/dev/null 2>/dev/null
 
 # Check if photo was captured successfully
 if [ ! -f "$LOCAL_PHOTO" ]; then
-    echo "Error: Failed to capture photo" | tee -a "$LOG_FILE"
+    echo "Error: Failed to capture image" | tee -a "$LOG_FILE"
     exit 1
 fi
 
-echo "Photo captured successfully" | tee -a "$LOG_FILE"
+echo "Image captured successfully" | tee -a "$LOG_FILE"
 ls -lh "$LOCAL_PHOTO" | tee -a "$LOG_FILE"
 
-# Capture photo from camera
-echo "Capturing IR photo..." | tee -a "$LOG_FILE"
+# Capture image from camera
+echo "Capturing IR image..." | tee -a "$LOG_FILE"
 /usr/sbin/set_ir.sh 1
 echo "Waiting 30 seconds for IR mode..." | tee -a "$LOG_FILE"
 sleep 30
 wget http://127.0.0.1/image.jpg -O "$LOCAL_PHOTO_IR" >/dev/null 2>/dev/null 
 
-# Check if photo was captured successfully
+# Check if image was captured successfully
 if [ ! -f "$LOCAL_PHOTO_IR" ]; then
-    echo "Error: Failed to capture IR photo" | tee -a "$LOG_FILE"
+    echo "Error: Failed to capture IR image" | tee -a "$LOG_FILE"
     exit 1
 fi
 
 # switch back to RGB mode - no sleep delay here
 # /usr/sbin/set_ir.sh 0
 
-echo "IR photo captured successfully" | tee -a "$LOG_FILE"
+echo "IR image captured successfully" | tee -a "$LOG_FILE"
 ls -lh "$LOCAL_PHOTO_IR" | tee -a "$LOG_FILE"
 
 
@@ -138,7 +143,10 @@ echo "quit" >> "$BATCH_FILE"
 echo "Batch file created at: $BATCH_FILE" | tee -a "$LOG_FILE"
 cat "$BATCH_FILE" | tee -a "$LOG_FILE"
 
-# Upload photo via SFTP
+echo "Waiting $UPLOAD_DELAY seconds before upload..." | tee -a "$LOG_FILE"
+sleep "$UPLOAD_DELAY"
+
+# Upload images via SFTP
 echo "Starting SFTP upload..." | tee -a "$LOG_FILE"
 echo "Command: sftp -S $SSH_WRAPPER -i $SSH_KEY -b $BATCH_FILE $REMOTE_USER@$REMOTE_HOST" | tee -a "$LOG_FILE"
 
@@ -150,8 +158,8 @@ echo "SFTP exit code: $UPLOAD_STATUS" | tee -a "$LOG_FILE"
 
 # Check upload status
 if [ $UPLOAD_STATUS -eq 0 ]; then
-    echo "Photo uploaded successfully: $REMOTE_PHOTO" | tee -a "$LOG_FILE"
-    echo "Photo uploaded successfully: $REMOTE_PHOTO_IR" | tee -a "$LOG_FILE"
+    echo "Image uploaded successfully: $REMOTE_PHOTO" | tee -a "$LOG_FILE"
+    echo "Image uploaded successfully: $REMOTE_PHOTO_IR" | tee -a "$LOG_FILE"
     rm -f "$LOCAL_PHOTO"
     rm -f "$LOCAL_PHOTO_IR"
     rm -f "$BATCH_FILE"
@@ -159,7 +167,7 @@ if [ $UPLOAD_STATUS -eq 0 ]; then
     exit 0
 else
     echo "Error: Upload failed (exit code: $UPLOAD_STATUS)" | tee -a "$LOG_FILE"
-    echo "Local photo still at: $LOCAL_PHOTO" | tee -a "$LOG_FILE"
-    echo "Local IR photo still at: $LOCAL_PHOTO_IR" | tee -a "$LOG_FILE"
+    echo "Local image still at: $LOCAL_PHOTO" | tee -a "$LOG_FILE"
+    echo "Local IR image still at: $LOCAL_PHOTO_IR" | tee -a "$LOG_FILE"
     exit 1
 fi
