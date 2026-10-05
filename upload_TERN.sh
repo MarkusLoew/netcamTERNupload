@@ -34,7 +34,7 @@
 # To run the script manually: /mnt/cfg1/upload_TERN.sh
 #
 # Edit /mnt/cfg1/schedule/admin to schedule the script to run at desired intervals. It uses crontab nomenclature.
-# For example, to run every 30 minutes between 10:00 and 14:00, add the following:
+# For example, to run every 30 minutes between 10:00 and 14:30, add the following:
 # 0,30 10-14 * * * /mnt/cfg1/upload_TERN.sh
 # Reboot the camera after editing the crontab to ensure the changes take effect. See "advanced" options in the camera webinterface.
 
@@ -57,11 +57,12 @@ REMOTE_HOST="sftp.tern.org.au"
 REMOTE_PATH="."
 # REMOTE PORT 2222 is hardcoded to 2222 in the SSH wrapper script!
 #REMOTE_PORT=2222
-# FLux towers usually upload their data at half-hourly intervals. To avoid overloading the network connection, a delay of 5 minutes is added before the first upload attempt. Upload of 10 Hz data from the flux tower is usually done within 4  minutes intervals. Upload of 20 Hz TOA5 file can take up to 9 minutes. Adjust UPload delay accordingly.
+# Flux towers usually upload their data at half-hourly intervals. To avoid overloading the network connection, a delay of 5 minutes is added before uploading the phenocam photos. The upload of 10 Hz data from a flux tower is usually done within 4 minutes. Upload of a 20 Hz TOA5 file can take up to 9 minutes. Adjust UPLOAD_DELAY accordingly.
 UPLOAD_DELAY=300
 # before first use, create the SSH key pair on the camera and copy the public key to the TERN server. The private key is stored in /mnt/cfg1/camera_key
 # use  dropbearkey -t ecdsa -s 521 -f /mnt/cfg1/camera_key to create the ssh key pair. The public key is in /mnt/cfg1/camera_key.pub
 # use dropbearkey -y -f /mnt/cfg1/camera_key to get the public key in the format that can be added to the authorized_keys file on the TERN server. Send this public key to TERN support (Gerhard).
+# keep a copy of the private key in a safe place in case the camera memory is wiped. Then it is possible to re-upload the key to the camera. Otherwise, a new key must be created and sent to TERN!
 SSH_KEY="/mnt/cfg1/camera_key"
 SSH_WRAPPER="/tmp/ssh-wrapper.sh"
 BATCH_FILE="/tmp/sftp-batch.txt"
