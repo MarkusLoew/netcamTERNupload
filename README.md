@@ -14,7 +14,7 @@ The Stardot NetcamLive2 has a built-in SSH client. Unfortunately, the version th
 
 No interactive shell is available on the TERN server. This requires the upload to be done via a batch file that holds all the commands needed to transfer the images. The batch file is created each time the script runs.
 
-Connect to the camera via a terminal program. Use `ssh admin@192.168.xxx.xxx` to connect. You'll get prompted to type inthe password that you set earlier via the camera webinterface. Get the correct ipadress from your router. Within the TERN network, the camera ipaddress will start with 192.168.. 
+Connect to the camera via a terminal program. Use `ssh admin@192.168.xxx.xxx` to connect. You'll get prompted to type in the password that you set earlier via the camera webinterface. Get the correct ipadress from your router. Within the TERN network, the camera ipaddress will start with 192.168.. 
 
 After connection, before first use of the script, create the SSH key pair on the camera and copy the public key to the TERN server. The private key is stored in `/mnt/cfg1/camera_key`
 
@@ -22,6 +22,8 @@ Use `dropbearkey -t ecdsa -s 521 -f /mnt/cfg1/camera_key` to create the ssh key 
 
 Use `dropbearkey -y -f /mnt/cfg1/camera_key` to display the public key in the format that can be added to the authorized_keys file on the TERN server. Send this public key to TERN support (Gerhard). Photo uploads can only take place after this key has been added to the TERN server!
 Keep a copy of the private and public key in a safe location in case the camera memory gets wiped. Creating a new key on the camera requires to update the key on the TERN server as well. Hence, keep a copy of the keys in a safe location!
+
+Files are transferred between camera and local computer via `scp`. To download e.g. the camera key file to the local computer use `scp admin@192.168.xxx.xxx:/mnt/cfg1/camera_key .`
 
 This script `upload_TERN.sh` is to be placed in the folder `/mnt/cfg1` on the camera file system. The script is following advice from Stardot regarding not wearing out the flash memory - hence it does not place any scripts with frequent read/writes outside of `/var/tmp`. Also, all images are stored in `/var/tmp` (see advanced settings in the camera webinterface for details on folders on the camera and wear and tear of the storage system). Only this script should be created/placed within the flash-storage at `/mnt/*` locations! All dynamic scripts that handle connection and upload are created as temporary files in `/var/tmp`. Images and the batch files are stored there as well. They are removed after successful uploads without wear on the flash memory due to space limitations.
 
